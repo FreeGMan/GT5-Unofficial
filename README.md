@@ -9,10 +9,12 @@ This is project modification GT5-Unofficial. Created to make changes to the mod 
 
 ### Antimatter Update
 
-- Charging casing
 - Add machine for generation Antimatter/Neutronium
-- Charging Antimatter Pod
-- Config for Reactor
+- Add mechanics for search place for production Antimatter/Neutronium
+- Add new battery for higher tiers
+- Charging casing (if it's need)
+- Charging Antimatter Pod (maybeee?)
+- Config for all machine
 
 ### Tweak
 
