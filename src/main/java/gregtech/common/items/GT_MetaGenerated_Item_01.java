@@ -768,6 +768,11 @@ public class GT_MetaGenerated_Item_01 extends GT_MetaGenerated_Item_X32 {
         GT_Values.RA.addAssemblerRecipe(ItemList.Emitter_MV.get(1L, new Object[0]), GT_OreDictUnificator.get(OrePrefixes.plate, Materials.Aluminium, 1L), ItemList.Cover_NeedsMaintainance.get(1L, new Object[0]), 600, 24);
     
 
+        ItemList.Magnetic_Confinement_Pod.set(addItem(tLastID = 580, "Magnetic Confinement Pod", "For contains very dangerous material in antigravitation field!", new Object[0]));
+        ItemList.Magnetic_Confinement_Pod_AntiHydrogen.set(addItem(tLastID = 581, "AntiHydrogen Pod", "Antimatter Reactor Fuel. AntiWater?! @.@", new Object[0]));
+        ItemList.Magnetic_Confinement_Pod_Hydrogen.set(addItem(tLastID = 582, "Hydrogen Pod", "Antimatter Reactor Fuel", new Object[0]));
+        GT_ModHandler.addCraftingRecipe(ItemList.Magnetic_Confinement_Pod.get(1L, new Object[0]), GT_ModHandler.RecipeBits.DISMANTLEABLE | GT_ModHandler.RecipeBits.NOT_REMOVABLE | GT_ModHandler.RecipeBits.REVERSIBLE, new Object[]{"PCP", "F F", "PBP", 'C', OrePrefixes.circuit.get(Materials.Master), 'P', OrePrefixes.plate.get(Materials.NaquadahAlloy), 'F', ItemList.Field_Generator_ZPM, 'B', OrePrefixes.battery.get(Materials.Ultimate)});
+        
     }
 
     public boolean onEntityItemUpdate(EntityItem aItemEntity) {
