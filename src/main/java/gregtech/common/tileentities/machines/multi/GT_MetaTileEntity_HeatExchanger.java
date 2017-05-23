@@ -12,25 +12,65 @@ import gregtech.api.metatileentity.implementations.GT_MetaTileEntity_Hatch_Outpu
 import gregtech.api.metatileentity.implementations.GT_MetaTileEntity_MultiBlockBase;
 import gregtech.api.objects.GT_RenderedTexture;
 import gregtech.api.util.GT_ModHandler;
+import gregtech.api.util.GT_MultiblockStructureValidator;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
 public class GT_MetaTileEntity_HeatExchanger extends GT_MetaTileEntity_MultiBlockBase {
+    static final String[][] structure = new String[][]{
+            {
+                    "TTT",
+                    "TIT",
+                    "TCT"},
+            {
+                    "TTT",
+                    "TPT",
+                    "TTT"},
+            {
+                    "TTT",
+                    "TPT",
+                    "TTT"},
+            {
+                    "TTT",
+                    "TOT",
+                    "TTT"}
+    };
 
-    private static boolean controller;
+    private int casingAmmount;
     public GT_MetaTileEntity_Hatch_Input mInputHotFluidHatch;
     public GT_MetaTileEntity_Hatch_Output mOutputColdFluidHatch;
     public boolean superheated = false;
     private float water;
+    private GT_MultiblockStructureValidator validator = new GT_MultiblockStructureValidator(structure) {
+        @Override
+        public boolean validateBlock(char pattern, Block block, int meta, IGregTechTileEntity tileEntity) {
+            switch (pattern) {
+                case 'T':
+                    if (block == getCasingBlock() && meta == getCasingMeta()) {
+                        casingAmmount++;
+                        return true;
+                    }
+                    return addOutputToMachineList(tileEntity, 50) || addInputToMachineList(tileEntity, 50) || addMaintenanceToMachineList(tileEntity, 50);
+                case 'P':
+                    casingAmmount++;
+                    return block == getPipeBlock() && meta == getPipeMeta();
+                case 'O':
+                    return addColdFluidOutputToMachineList(tileEntity, 50);
+                case 'I':
+                    return addHotFluidInputToMachineList(tileEntity, 50);
+            }
+            return true;
+        }
+    };
 
     public GT_MetaTileEntity_HeatExchanger(int aID, String aName, String aNameRegional) {
         super(aID, aName, aNameRegional);
     }
+
     public GT_MetaTileEntity_HeatExchanger(String aName) {
         super(aName);
     }
@@ -131,9 +171,9 @@ public class GT_MetaTileEntity_HeatExchanger extends GT_MetaTileEntity_MultiBloc
     }
 
     private int useWater(float input) {
-        water = water + input;
+        water += input;
         int usage = (int) water;
-        water = water - (int) usage;
+        water -= usage;
         return usage;
     }
 
@@ -166,57 +206,8 @@ public class GT_MetaTileEntity_HeatExchanger extends GT_MetaTileEntity_MultiBloc
     }
 
     public boolean checkMachine(IGregTechTileEntity aBaseMetaTileEntity, ItemStack aStack) {
-        int xDir = ForgeDirection.getOrientation(aBaseMetaTileEntity.getBackFacing()).offsetX;
-        int zDir = ForgeDirection.getOrientation(aBaseMetaTileEntity.getBackFacing()).offsetZ;
-
-        int tCasingAmount = 0;
-        int tFireboxAmount = 0;
-        controller = false;
-        for (int i = -1; i < 2; i++) {
-            for (int j = -1; j < 2; j++) {
-                if ((i != 0) || (j != 0)) {
-                    for (int k = 0; k <= 3; k++) {
-                        if (!addOutputToMachineList(aBaseMetaTileEntity.getIGregTechTileEntityOffset(xDir + i, k, zDir + j), 50) && !addInputToMachineList(aBaseMetaTileEntity.getIGregTechTileEntityOffset(xDir + i, k, zDir + j), 50) && !addMaintenanceToMachineList(aBaseMetaTileEntity.getIGregTechTileEntityOffset(xDir + i, k, zDir + j), 50) && !ignoreController(aBaseMetaTileEntity.getBlockOffset(xDir + i, k, zDir + j))) {
-                            if (aBaseMetaTileEntity.getBlockOffset(xDir + i, k, zDir + j) != getCasingBlock()) {
-                                return false;
-                            }
-                            if (aBaseMetaTileEntity.getMetaIDOffset(xDir + i, k, zDir + j) != getCasingMeta()) {
-                                return false;
-                            }
-                            tCasingAmount++;
-                        }
-                    }
-                } else {
-                    if (!addHotFluidInputToMachineList(aBaseMetaTileEntity.getIGregTechTileEntityOffset(xDir + i, 0, zDir + j), 50)) {
-                        return false;
-                    }
-                    if (!addColdFluidOutputToMachineList(aBaseMetaTileEntity.getIGregTechTileEntityOffset(xDir + i, 3, zDir + j), 50)) {
-                        return false;
-                    }
-                    if (aBaseMetaTileEntity.getBlockOffset(xDir + i, 1, zDir + j) != getPipeBlock()) {
-                        return false;
-                    }
-                    if (aBaseMetaTileEntity.getMetaIDOffset(xDir + i, 1, zDir + j) != getPipeMeta()) {
-                        return false;
-                    }
-
-                    if (aBaseMetaTileEntity.getBlockOffset(xDir + i, 2, zDir + j) != getPipeBlock()) {
-                        return false;
-                    }
-                    if (aBaseMetaTileEntity.getMetaIDOffset(xDir + i, 2, zDir + j) != getPipeMeta()) {
-                        return false;
-                    }
-                }
-            }
-        }
-        return (tCasingAmount >= 24);
-    }
-
-    public boolean ignoreController(Block tTileEntity) {
-        if (!controller && tTileEntity == GregTech_API.sBlockMachines) {
-            return true;
-        }
-        return false;
+        casingAmmount = 0;
+        return validator.validateStructure(aBaseMetaTileEntity, aBaseMetaTileEntity.getFrontFacing()) && casingAmmount >= 24;
     }
 
     public boolean addColdFluidOutputToMachineList(IGregTechTileEntity aTileEntity, int aBaseCasingIndex) {
@@ -275,6 +266,7 @@ public class GT_MetaTileEntity_HeatExchanger extends GT_MetaTileEntity_MultiBloc
     public int getDamageToComponent(ItemStack aStack) {
         return 0;
     }
+
     public boolean explodesOnComponentBreak(ItemStack aStack) {
         return false;
     }
